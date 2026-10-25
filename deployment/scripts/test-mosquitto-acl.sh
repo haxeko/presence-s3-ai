@@ -8,7 +8,13 @@ PORT=18831
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 NAME="presence-acl-test-$$"
-cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$TMP"; }
+# Entrypoint của image (chạy bằng root) đổi chủ /mosquitto thành uid 1883, nên người dùng thường không xóa được thư mục
+# tạm: xóa bằng một container.
+cleanup() {
+  docker rm -f "$NAME" >/dev/null 2>&1 || true
+  docker run --rm -v "$TMP:/t" "$IMAGE" rm -rf /t/config >/dev/null 2>&1 || true
+  rm -rf "$TMP" || true
+}
 trap cleanup EXIT
 
 mkdir -p "$TMP/config"
@@ -20,12 +26,12 @@ password_file /mosquitto/config/passwd
 acl_file /mosquitto/config/acl
 CONF
 touch "$TMP/config/passwd"
+# Quyền file (tránh cảnh báo của mosquitto 2.0); đặt trước khi container đổi chủ thư mục
+chmod 0700 "$TMP/config" && chmod 0600 "$TMP/config/"*
 for u in "presence-backend backpw" "s3-aaaaaa devpw"; do
   set -- $u
   docker run --rm -v "$TMP/config:/mosquitto/config" "$IMAGE" mosquitto_passwd -b /mosquitto/config/passwd "$1" "$2" >/dev/null 2>&1
 done
-# Quyền file: chỉ để tránh cảnh báo của mosquitto 2.0 trong container
-chmod 0700 "$TMP/config" && chmod 0600 "$TMP/config/"*
 docker run -d --name "$NAME" --network host -v "$TMP/config:/mosquitto/config" "$IMAGE" \
   mosquitto -c /mosquitto/config/mosquitto.conf >/dev/null
 sleep 1

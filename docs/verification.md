@@ -11,7 +11,7 @@ Mọi kết quả dưới đây là lần chạy thật trên Linux x86_64: Pyth
 | Python: huấn luyện (20), backend (11), công cụ cổng COM (2) | `pytest` | **33 / 33 đạt** |
 | Firmware ESP32-S3 (build sạch) | `idf.py build && idf.py size` | Không cảnh báo từ mã dự án. Ảnh 1 147 659 byte (còn 45% của 2 MB), DIRAM 130 835 / 341 760 byte (38,3%) |
 | Test trên chip ảo (QEMU ESP32-S3) | `firmware/test/qemu/run_target_test.sh` | **PASS, 0 lỗi** (chi tiết bên dưới) |
-| ACL Mosquitto với broker thật | `sh deployment/scripts/test-mosquitto-acl.sh` | **8 / 8 đạt**. Với ACL cũ (`readwrite dev/%u/#`) test báo hỏng 2 mục, tức test phân biệt được |
+| ACL Mosquitto với broker thật | `sh deployment/scripts/test-mosquitto-acl.sh` | **8 / 8 đạt**, cả khi chạy bằng root lẫn bằng người dùng thường như runner của GitHub. Với ACL cũ (`readwrite dev/%u/#`) test báo hỏng 2 mục, tức test phân biệt được |
 
 ### Các test quan trọng đã có
 
@@ -128,4 +128,4 @@ Log thu được trong lúc chạy không nằm trong repo. Có thể tái tạo
 | ESP-IDF khác v5.5.6 | `idf_component.yml` giới hạn `>=5.5,<5.6` | |
 | Flash Encryption, NVS Encryption, Secure Boot | Chưa bật | [security.md](security.md) |
 | Thiết bị không kiểm tra hạn chứng chỉ TLS | Hạn chế đã biết của cấu hình mbedTLS mặc định | [security.md](security.md#tls) |
-| Mosquitto ≥ 2.1 với file `passwd` có quyền đọc rộng (thư mục mount từ Windows) | 2.0.22 chỉ cảnh báo | [security.md](security.md#ghi-chú-về-mosquitto-trên-windows) |
+| Mosquitto ≥ 2.1 với file `passwd` có quyền đọc rộng (thư mục mount từ Windows) | 2.0.22 chỉ cảnh báo | [security.md](security.md#quyền-file-của-mosquitto) |

@@ -98,6 +98,7 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 
 - [ ] Cân nhắc Flash Encryption / NVS Encryption / Secure Boot nếu người lạ tiếp cận được bo.
 - [ ] Image Docker và thư viện vẫn ở phiên bản đã cố định. Chỉ nâng cấp có chủ đích, sau khi chạy lại test ([verification.md](verification.md)).
 
-## Ghi chú về Mosquitto trên Windows
+## Quyền file của Mosquitto
 
-Mosquitto 2.0.22 cảnh báo khi `passwd`/`acl` có quyền đọc cho mọi người. Thư mục mount từ ổ Windows luôn hiện như vậy. Bản 2.0.22 vẫn chạy và chỉ cảnh báo; bản sau có thể từ chối. Khi đó, đặt cấu hình trong WSL hoặc trong một named volume.
+- **Windows (Docker Desktop):** Mosquitto 2.0.22 cảnh báo khi `passwd`/`acl` có quyền đọc cho mọi người. Thư mục mount từ ổ Windows luôn hiện như vậy. Bản 2.0.22 vẫn chạy và chỉ cảnh báo; bản sau có thể từ chối. Khi đó, đặt cấu hình trong WSL hoặc trong một named volume.
+- **Linux:** entrypoint của image `eclipse-mosquitto` (chạy bằng root) đổi chủ thư mục `deployment/mosquitto/config` sang uid 1883 mỗi lần khởi động. Mosquitto đọc `passwd`/`acl` **sau khi** hạ quyền xuống uid này, nên không thể mount chỉ đọc một file 0600 thuộc người dùng khác (đã thử). Hệ quả: muốn sửa `acl` hoặc `git pull` thay đổi file trong thư mục đó, trước hết chạy `sudo chown -R "$USER" deployment/mosquitto/config`, rồi khởi động lại broker để nó đổi chủ lại. Tạo người dùng MQTT vẫn dùng `deployment/scripts/mosquitto-user.sh` như bình thường.
