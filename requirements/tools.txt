@@ -1,0 +1,2 @@
+# Công cụ radar qua cổng COM: tools/ld2410_capture.py, tools/ld2410_replay.py --serial, tools/fake_device.py
+pyserial==3.5

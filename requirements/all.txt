@@ -1,0 +1,4 @@
+# Một môi trường cho backend + huấn luyện (backend chạy tác vụ huấn luyện bằng chính Python này).
+-r backend.txt
+-r training.txt
+-r tools.txt

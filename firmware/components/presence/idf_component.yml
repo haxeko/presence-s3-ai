@@ -1,0 +1,6 @@
+## Versions checked with ESP-IDF v5.5.6 (docs/verification.md). Pinned: update only after re-running the build,
+## the QEMU self-test and a hardware check.
+dependencies:
+  idf: ">=5.5,<5.6"
+  espressif/esp-tflite-micro: "==1.4.1"
+  espressif/esp-nn: "==1.4.1"

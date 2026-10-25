@@ -1,0 +1,148 @@
+menu "Presence S3 AI"
+
+    menu "LD2410 radar"
+        config PRESENCE_RADAR_UART_NUM
+            int "UART port"
+            range 1 2
+            default 1
+            help
+                Hardware UART used for the radar. UART0 carries the boot log and the console.
+
+        config PRESENCE_RADAR_RX_GPIO
+            int "ESP32 RX pin (connect to radar TX)"
+            range 0 48
+            default 18
+
+        config PRESENCE_RADAR_TX_GPIO
+            int "ESP32 TX pin (connect to radar RX)"
+            range 0 48
+            default 17
+
+        config PRESENCE_RADAR_BAUD
+            int "Baud rate"
+            default 256000
+            help
+                LD2410 factory default is 256000 8N1. Change it only if the radar was set to another rate with
+                HLKRadarTool; this firmware never changes the radar's baud rate.
+
+        config PRESENCE_RADAR_TIMEOUT_MS
+            int "No-data timeout (ms)"
+            range 500 10000
+            default 2000
+            help
+                No valid engineering report for this long: the radar is reported as faulty and the presence state
+                becomes uncertain (never "empty").
+    endmenu
+
+    menu "Network"
+        config PRESENCE_NET_QEMU_OPENETH
+            bool "QEMU only: OpenCores Ethernet instead of Wi-Fi"
+            default n
+            select ETH_USE_OPENETH
+            help
+                For tests in Espressif's QEMU (sdkconfig.qemu). Never enable on a real board.
+
+        config PRESENCE_WIFI_SSID
+            string "Wi-Fi SSID"
+            default ""
+            help
+                Leave empty here and put it in sdkconfig.secrets (not committed) or set it from the serial console
+                ("config set wifi_ssid ..."), stored in NVS.
+
+        config PRESENCE_WIFI_PASSWORD
+            string "Wi-Fi password"
+            default ""
+
+        config PRESENCE_MQTT_URI
+            string "MQTT broker URI"
+            default "mqtt://192.168.1.10:1883"
+            help
+                mqtt://host:1883 on a LAN, mqtts://host:8883 with TLS (see PRESENCE_TLS_*).
+
+        config PRESENCE_MQTT_USERNAME
+            string "MQTT username (empty: the device id, e.g. s3-a1b2c3)"
+            default ""
+
+        config PRESENCE_MQTT_PASSWORD
+            string "MQTT password"
+            default ""
+
+        config PRESENCE_SERVER_URL
+            string "Backend base URL (model downloads)"
+            default "http://192.168.1.10:8000"
+            help
+                Models are downloaded from <this URL>/api/device/models/<id>/package. The URL in MQTT messages is
+                never used, only the model id.
+
+        config PRESENCE_DEVICE_TOKEN
+            string "Device token for the backend"
+            default ""
+            help
+                Sent as "Authorization: Bearer <token>"; one of DEVICE_TOKENS of the backend.
+
+        config PRESENCE_TOPIC_PREFIX
+            string "MQTT topic prefix"
+            default "presence/v1"
+
+        config PRESENCE_SNTP_SERVER
+            string "SNTP server"
+            default "pool.ntp.org"
+            help
+                Without time the backend dates samples itself (arrival time minus device-side delay).
+
+        config PRESENCE_TLS_USE_CRT_BUNDLE
+            bool "Verify TLS servers with the ESP-IDF certificate bundle (public CAs)"
+            default y
+            help
+                Used for mqtts:// and https://. A private CA (self-signed broker/backend on a LAN) goes in
+                firmware/certs/ca.pem: when that file exists it is embedded and used instead of the bundle
+                (run `idf.py reconfigure` after adding it). Without a bundle or a CA, TLS connections fail.
+
+        config PRESENCE_BATCH_SAMPLES
+            int "Samples per MQTT message when catching up"
+            range 5 40
+            default 25
+
+        config PRESENCE_BUFFER_SAMPLES
+            int "Offline buffer (samples, 60 bytes each, RAM only)"
+            range 100 100000
+            default 1000
+            help
+                5 samples per second: 1000 = 200 s (about 60 KB of internal RAM). When full the OLDEST samples are dropped and counted
+                (status buffer.dropped, gaps in seq). With PSRAM enabled the buffer is allocated in PSRAM and can be
+                much larger (e.g. 18000 = 1 hour).
+    endmenu
+
+    menu "Model update"
+        config PRESENCE_MODEL_REQUIRE_SIGNATURE
+            bool "Accept only packages signed with firmware/keys/model_signing_pub.pem"
+            default y
+            help
+                Required when the backend is reachable from the Internet. Create the key pair with
+                "python tools/keys.py init". Disabled: packages are checked only against the SHA-256 announced on
+                MQTT (LAN tests only).
+
+        config PRESENCE_MODEL_MAX_PACKAGE_KB
+            int "Largest model package (KB)"
+            range 16 384
+            default 192
+
+        config PRESENCE_MODEL_HEAP_RESERVE_KB
+            int "Free heap kept after loading a model (KB)"
+            range 16 256
+            default 48
+    endmenu
+
+    config PRESENCE_OUTPUT_GPIO
+        int "Presence output pin (-1: none)"
+        range -1 48
+        default -1
+        help
+            High while the confirmed decision is "occupied" (also without network). Not set at boot until the
+            first decision.
+
+    config PRESENCE_CONSOLE
+        bool "Serial console for configuration (config set/show, status)"
+        default y
+
+endmenu

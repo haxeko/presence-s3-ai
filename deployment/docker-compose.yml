@@ -1,0 +1,41 @@
+# Mosquitto (mặc định) và backend (profile "backend").
+#   docker compose -f deployment/docker-compose.yml up -d                     # chỉ broker MQTT
+#   docker compose -f deployment/docker-compose.yml --profile backend up -d   # broker + backend (có TensorFlow)
+# Cấu hình bí mật nằm trong ../.env (sao chép từ deployment/.env.example), không commit.
+name: presence-s3-ai
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT trong LAN (có mật khẩu)
+      - "8883:8883"   # MQTT qua TLS (cần chứng chỉ, xem docs/security.md)
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+
+  backend:
+    profiles: ["backend"]
+    build:
+      context: ..
+      dockerfile: deployment/backend.Dockerfile
+    image: presence-s3-ai-backend:0.1.0
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      MQTT_HOST: mosquitto
+      PRESENCE_DATA_DIR: /data
+      PRESENCE_ENV_FILE: /nonexistent
+    volumes:
+      - ../data:/data
+      - ../secrets:/secrets:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mosquitto
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:

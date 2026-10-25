@@ -1,0 +1,10 @@
+# QEMU (no Wi-Fi, no radar hardware): OpenCores Ethernet on the user-mode network, UART1 on a TCP socket.
+# Used by firmware/test/qemu/run_firmware_e2e.sh together with sdkconfig.defaults.
+CONFIG_PRESENCE_NET_QEMU_OPENETH=y
+CONFIG_ETH_USE_OPENETH=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PRESENCE_MQTT_URI="mqtt://10.0.2.2:1883"
+CONFIG_PRESENCE_SERVER_URL="http://10.0.2.2:8000"
+CONFIG_PRESENCE_SNTP_SERVER="10.0.2.2"
+CONFIG_PRESENCE_TLS_USE_CRT_BUNDLE=n
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=30

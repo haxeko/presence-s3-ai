@@ -1,0 +1,32 @@
+# Dữ liệu, bí mật, cấu hình cục bộ (không commit)
+data/
+secrets/
+.env
+*.pem.key
+firmware/keys/*.pem
+firmware/certs/*.pem
+firmware/test/fixtures/packages/*_key.pem
+deployment/mosquitto/config/passwd
+deployment/mosquitto/config/certs/
+
+# ESP-IDF
+firmware/build/
+firmware/build-*/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/sdkconfig.secrets
+firmware/sdkconfig*.local
+firmware/managed_components/
+firmware/test/target/build/
+firmware/test/target/sdkconfig
+firmware/test/target/sdkconfig.old
+firmware/test/target/managed_components/
+
+# Python / công cụ
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+build/
+node_modules/

@@ -1,0 +1,8 @@
+# Huấn luyện trên CPU. TensorFlow 2.21.0 có wheel cho Windows/Linux/macOS, Python 3.10-3.13.
+# tf.lite (converter + interpreter) vẫn có trong 2.21 (interpreter báo "deprecated"); xem docs/verification.md.
+tensorflow==2.21.0
+keras==3.15.1
+numpy==2.5.4
+pandas==3.1.0
+scikit-learn==1.9.1
+cryptography==50.0.2

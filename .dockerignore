@@ -1,0 +1,11 @@
+# Build context của deployment/backend.Dockerfile: chỉ gửi những gì Dockerfile COPY.
+# Không bao giờ gửi bí mật (.env, secrets/), dữ liệu (data/) hay thư mục build của firmware.
+**
+!requirements/
+!pyproject.toml
+!training/
+!backend/
+!dashboard/
+**/__pycache__
+**/*.pyc
+**/*.egg-info

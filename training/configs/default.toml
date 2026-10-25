@@ -1,0 +1,40 @@
+# Cấu hình huấn luyện mặc định (đọc bằng tomllib). Sao chép rồi sửa, truyền bằng --config.
+
+[data]
+split_mode = "session"          # "session" hoặc "day": chia train/val/test theo phiên hoặc theo ngày (mỗi thiết bị)
+ratios = [0.7, 0.15, 0.15]      # train, validation, test (theo thời lượng có nhãn)
+seed = 42
+transition_guard_s = 2.0        # loại cửa sổ có ô cách điểm đổi nhãn dưới 2 s
+min_valid_slots = 16            # cửa sổ cần >= 16/20 ô có mẫu (giá trị này được ghi vào gói mô hình)
+max_gap_slots = 3               # và không thiếu quá 3 ô liên tiếp
+include_simulated = false       # true CHỈ khi kiểm tra pipeline bằng dữ liệu mô phỏng
+exclude_kinds = []              # ví dụ ["event"] để bỏ các đoạn trích quanh báo giả/bỏ sót
+
+[model]
+hidden = [32, 16]               # 72 -> Dense 32 ReLU -> Dense 16 ReLU -> Dense 4 Softmax
+learning_rate = 0.001
+batch_size = 64
+epochs = 300
+patience = 25                   # early stopping theo val_loss, giữ trọng số tốt nhất
+seed = 42
+class_weight = "balanced"       # "balanced" hoặc "none" (không nhân bản mẫu để cân bằng)
+
+[export]
+representative_samples = 1000   # số cửa sổ train dùng hiệu chuẩn lượng tử hóa INT8
+arena_bytes = 16384             # tensor arena khai báo cho TFLM trên ESP32
+test_vectors = 24               # số vector kiểm tra nhúng trong gói
+tol_input_q = 1                 # sai số cho phép (đơn vị lượng tử) khi so ESP32 với máy tính
+tol_output_q = 3                # đo trên QEMU ESP32-S3 (TFLM + esp-nn): lệch tới 2 so với kernel tham chiếu
+
+[presence]                      # tham số giữ trạng thái đề xuất kèm gói (sửa được trên dashboard)
+enter = 0.7
+exit = 0.3
+confirm_occupied_s = 2
+confirm_empty_s = 60
+
+[evaluation]
+min_test_minutes_per_class = 5  # dưới mức này: "chưa đủ dữ liệu để kết luận"
+min_test_groups_per_class = 2
+min_empty_hours = 0.5           # tối thiểu giờ phòng trống trong tập test để báo số báo giả mỗi giờ
+entry_latency_cap_s = 60
+exit_latency_cap_s = 600

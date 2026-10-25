@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  host-tests:
+    name: Firmware core (C++, máy tính)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev
+      - run: cmake -S firmware/test/host -B build/host -G Ninja
+      - run: cmake --build build/host
+      - run: build/host/host_tests
+
+  python-tests:
+    name: Training + backend (Python 3.12, TensorFlow CPU)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements/dev.txt && pip install --no-deps -e .
+      - run: pytest
+        env:
+          TF_CPP_MIN_LOG_LEVEL: "2"
+
+  mosquitto-acl:
+    name: Mosquitto ACL (broker thật trong Docker)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh deployment/scripts/test-mosquitto-acl.sh
+
+  firmware:
+    name: ESP32-S3 build + QEMU on-target test (ESP-IDF v5.5.6)
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v5.5.6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build firmware (test signing key, never for real devices)
+        shell: bash
+        run: |
+          git config --global --add safe.directory '*'
+          . $IDF_PATH/export.sh
+          cp firmware/test/fixtures/packages/test_signing_pub.pem firmware/keys/model_signing_pub.pem
+          cd firmware
+          idf.py build
+          idf.py size
+      - name: Host tests with the ESP-IDF mbedTLS (same crypto code as the ESP32)
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          cmake -S firmware/test/host -B /tmp/host-mbedtls -G Ninja -DPRESENCE_CRYPTO=mbedtls
+          cmake --build /tmp/host-mbedtls
+          /tmp/host-mbedtls/host_tests
+      - name: On-target test in QEMU (features, mbedTLS, A/B partitions, TFLM + esp-nn)
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          firmware/test/qemu/run_target_test.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: presence-s3-ai-firmware
+          path: |
+            firmware/build/presence_s3_ai.bin
+            firmware/build/bootloader/bootloader.bin
+            firmware/build/partition_table/partition-table.bin
+            firmware/build/flash_args

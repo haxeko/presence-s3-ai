@@ -1,0 +1,8 @@
+# Backend (FastAPI + MQTT) KHÔNG kèm TensorFlow. Đã kiểm chứng với Python 3.12 (docs/verification.md).
+fastapi==0.162.0
+uvicorn==0.54.0
+paho-mqtt==2.1.0
+pydantic==2.14.1
+numpy==2.5.4
+pandas==3.1.0
+cryptography==50.0.2

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "presence-s3-ai"
+version = "0.1.0"
+description = "Cảm biến hiện diện ESP32-S3 + LD2410: thu dữ liệu, huấn luyện TinyML, cập nhật mô hình"
+requires-python = ">=3.11,<3.14"
+# Phiên bản cố định nằm trong requirements/*.txt (đã kiểm chứng); ở đây chỉ khai báo tối thiểu.
+dependencies = []
+
+[tool.setuptools]
+package-dir = { "presence_ml" = "training/presence_ml", "presence_server" = "backend/presence_server" }
+packages = ["presence_ml", "presence_server"]
+
+[tool.pytest.ini_options]
+testpaths = ["training/tests", "backend/tests", "tools/tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]

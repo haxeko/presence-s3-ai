@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cảm biến hiện diện</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">Cảm biến hiện diện <span class="muted">ESP32-S3 + LD2410</span></div>
+  <nav id="nav">
+    <a href="#/" data-tab="overview">Tổng quan</a>
+    <a href="#/collect" data-tab="collect">Thu dữ liệu</a>
+    <a href="#/sessions" data-tab="sessions">Phiên &amp; nhãn</a>
+    <a href="#/baseline" data-tab="baseline">Học phòng trống</a>
+    <a href="#/train" data-tab="train">Huấn luyện</a>
+    <a href="#/models" data-tab="models">Mô hình</a>
+    <a href="#/settings" data-tab="settings">Cài đặt</a>
+  </nav>
+  <div id="conn" class="pill">…</div>
+</header>
+<main id="main"></main>
+<div id="toast" class="toast hidden"></div>
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

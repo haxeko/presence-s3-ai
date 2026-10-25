@@ -1,0 +1,10 @@
+# ESP32-S3, fits 4 MB and 8 MB flash. No firmware OTA here: the model update has its own A/B slots.
+# Name,      Type, SubType, Offset,   Size
+nvs,         data, nvs,     0x9000,   0x6000
+phy_init,    data, phy,     0xf000,   0x1000
+factory,     app,  factory, 0x10000,  0x200000
+# Model metadata: two 4 KB copies of the A/B record (generation + CRC), written only during an update
+model_meta,  data, 0x40,    0x210000, 0x2000
+# Model packages (model.tflite + contract + test vectors + signature), 384 KB each, 64 KB aligned
+model_a,     data, 0x41,    0x220000, 0x60000
+model_b,     data, 0x41,    0x280000, 0x60000

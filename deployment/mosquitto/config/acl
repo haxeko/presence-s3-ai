@@ -1,0 +1,13 @@
+# Backend: toàn quyền trên presence/v1
+user presence-backend
+topic readwrite presence/v1/#
+
+# Thiết bị: tên đăng nhập MQTT = mã thiết bị (ví dụ s3-a1b2c3, in ra log lúc khởi động).
+# Chỉ được GHI dữ liệu của chính nó và chỉ được ĐỌC cấu hình/mô hình/lệnh gửi cho nó: một thiết bị bị lộ mật khẩu
+# không đọc được thiết bị khác và không tự đặt được desired/model.
+pattern write presence/v1/dev/%u/samples
+pattern write presence/v1/dev/%u/status
+pattern write presence/v1/dev/%u/state
+pattern write presence/v1/dev/%u/event
+pattern read presence/v1/dev/%u/desired/#
+pattern read presence/v1/dev/%u/cmd
