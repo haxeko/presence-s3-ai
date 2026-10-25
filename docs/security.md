@@ -32,6 +32,11 @@ Trước khi commit, kiểm tra: `git status --ignored` và `git add -n .`. Khô
 ## Chuỗi tin cậy của mô hình
 
 1. Backend ký SHA-256 của toàn bộ gói bằng khóa riêng ECDSA P-256. Khóa công khai được **nhúng lúc build firmware**. Nếu `CONFIG_PRESENCE_MODEL_REQUIRE_SIGNATURE=y` (mặc định) mà thiếu file khóa thì build dừng.
+
+   Nếu backend chưa có `MODEL_SIGNING_KEY`, nó vẫn huấn luyện nhưng gói **không được ký**:
+   - backend cảnh báo lúc khởi động;
+   - dashboard gắn nhãn "chưa ký" cho mô hình;
+   - firmware mặc định từ chối gói đó.
 2. Thông báo `desired/model` chỉ mang mã, phiên bản, kích thước và SHA-256. Thiết bị tự ghép URL từ `server_url` đã cấu hình, nên MQTT **không** chuyển hướng được thiết bị sang máy chủ khác. `model_id` chỉ nhận `[A-Za-z0-9._-]`.
 3. Trước khi kích hoạt, thiết bị kiểm tra:
    - SHA-256 toàn gói và từng section;

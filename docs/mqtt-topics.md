@@ -18,7 +18,7 @@ Backend đăng ký `presence/v1/dev/+/samples|status|state|event`.
 
 - `client_id` = mã thiết bị, keepalive 30 s, tự kết nối lại sau 5 s.
 - Tên đăng nhập = `mqtt_user`; nếu để trống nhưng có mật khẩu thì dùng **mã thiết bị**, khớp ACL.
-- `mqtts://...` dùng bộ chứng chỉ gốc của ESP-IDF (`CONFIG_PRESENCE_TLS_USE_CRT_BUNDLE`), xem [security.md](security.md).
+- Với `mqtts://...`, chứng chỉ của broker được kiểm tra bằng CA riêng nhúng từ `firmware/certs/ca.pem` nếu có. Nếu không có, thiết bị dùng bộ chứng chỉ gốc công khai của ESP-IDF ([security.md](security.md#tls)).
 - Mất mạng hoặc mất broker **không** ảnh hưởng việc phát hiện: radar, cửa sổ, mô hình và logic giữ trạng thái đều chạy trên thiết bị.
 
 ## `samples`: gửi, bộ đệm, chính sách bỏ mẫu
@@ -68,6 +68,8 @@ Ví dụ thật từ firmware chạy trong QEMU (đã rút gọn):
 
   Khác `ok` thì thiết bị khởi tạo lại radar mỗi 10 s. Trong lúc đó trạng thái là `uncertain` và quyết định giữ nguyên. Radar mất **không bao giờ** được coi là phòng trống.
 - `sampler.sample_rate_hz` là tốc độ mẫu thực tế, thấp hơn 5 khi có ô thiếu khung. `radar_reports_per_s` là tốc độ khung radar.
+- `tls_trust`: thiết bị tin chứng chỉ nào cho `mqtts://`/`https://`. Giá trị: `private_ca`, `crt_bundle` hoặc `none`.
+- `presence.eval_us`: thời gian một lần quyết định (đặc trưng, lượng tử hóa, suy luận, logic), gồm lần gần nhất (`last`) và lâu nhất (`max`), tính bằng µs.
 - `presence`: xem bảng bên dưới. Có thêm `params` (tham số giữ trạng thái đang dùng), `config_rev`, `baseline`, `prefer_threshold`. `model_blocked: "radar_gate_mismatch"` xuất hiện khi có mô hình nhưng radar đang báo độ phân giải gate khác mô hình, nên thiết bị dùng ngưỡng.
 
 ## `state` (retained)
