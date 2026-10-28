@@ -11,3 +11,5 @@ pattern write presence/v1/dev/%u/state
 pattern write presence/v1/dev/%u/event
 pattern read presence/v1/dev/%u/desired/#
 pattern read presence/v1/dev/%u/cmd
+# Home Assistant MQTT Discovery của chính thiết bị (homeassistant/<loại>/<mã thiết bị>/<đối tượng>/config)
+pattern write homeassistant/+/%u/#

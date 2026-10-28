@@ -90,6 +90,26 @@ menu "Presence S3 AI"
             help
                 Without time the backend dates samples itself (arrival time minus device-side delay).
 
+        config PRESENCE_WEB_CONFIG
+            bool "Configuration web page on port 80 (Wi-Fi, MQTT, backend)"
+            default y
+            help
+                http://<device ip>/ shows the status and edits the network settings (stored in NVS, applied after a
+                restart). No authentication: anyone on the LAN can change them. Model packages still need a valid
+                signature.
+
+        config PRESENCE_HA_DISCOVERY
+            bool "Home Assistant MQTT Discovery"
+            default y
+            help
+                On every MQTT connection, publishes retained discovery messages so the device appears in Home
+                Assistant (occupancy binary sensor, state, radar status, Wi-Fi signal).
+
+        config PRESENCE_HA_DISCOVERY_PREFIX
+            string "Home Assistant discovery prefix"
+            default "homeassistant"
+            depends on PRESENCE_HA_DISCOVERY
+
         config PRESENCE_TLS_USE_CRT_BUNDLE
             bool "Verify TLS servers with the ESP-IDF certificate bundle (public CAs)"
             default y

@@ -65,7 +65,7 @@ Copy-Item sdkconfig.secrets.example sdkconfig.secrets
 notepad sdkconfig.secrets      # Wi-Fi, MQTT URI (IP máy chạy Mosquitto), mật khẩu MQTT, URL backend, token thiết bị
 ```
 
-Cũng có thể để trống và cấu hình sau khi nạp, qua console nối tiếp:
+Cũng có thể để trống và cấu hình sau khi nạp: qua **trang web trên thiết bị** `http://<IP thiết bị>/` (khi thiết bị đã vào Wi-Fi, xem [home-assistant.md](home-assistant.md)), hoặc qua console nối tiếp:
 
 ```
 presence> config set wifi_ssid TenWifi

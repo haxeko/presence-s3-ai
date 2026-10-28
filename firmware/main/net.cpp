@@ -21,6 +21,7 @@
 #include "settings.h"
 #include "status.h"
 #include "tls_trust.h"
+#include "web_config.h"
 
 #if CONFIG_PRESENCE_NET_QEMU_OPENETH
 #include "esp_eth.h"
@@ -39,6 +40,7 @@ static esp_mqtt_client_handle_t s_mqtt;
 static volatile bool s_ip;
 static volatile bool s_mqtt_connected;
 static volatile bool s_status_requested = true;
+static volatile bool s_ha_discovery_pending;
 static char s_ip_text[16] = "";
 static char s_prefix[96];
 
@@ -101,6 +103,53 @@ bool net_publish(const char *suffix, const char *json, bool retain)
     snprintf(topic, sizeof(topic), "%s/%s", s_prefix, suffix);
     return esp_mqtt_client_publish(s_mqtt, topic, json, 0, 1, retain ? 1 : 0) >= 0;
 }
+
+#if CONFIG_PRESENCE_HA_DISCOVERY
+// Home Assistant MQTT Discovery: the device appears by itself (retained config messages, sent on every connect).
+// Entities read the device's own retained topics; availability follows the status topic and its LWT.
+static bool publish_ha_discovery()
+{
+    struct Entity {
+        const char *component;
+        const char *object;
+        const char *body;
+    };
+    static const Entity kEntities[] = {
+        { "binary_sensor", "occupancy",
+          "\"name\":\"Có người\",\"dev_cla\":\"occupancy\",\"stat_t\":\"~/state\","
+          "\"val_tpl\":\"{{ 'ON' if value_json.decision == 'occupied' else 'OFF' }}\"" },
+        { "sensor", "state",
+          "\"name\":\"Trạng thái\",\"icon\":\"mdi:account-question\",\"stat_t\":\"~/state\","
+          "\"val_tpl\":\"{{ {'occupied': 'Có người', 'empty': 'Trống', 'uncertain': 'Chưa chắc'}"
+          ".get(value_json.state, value_json.state) }}\"" },
+        { "sensor", "radar",
+          "\"name\":\"Radar\",\"ent_cat\":\"diagnostic\",\"icon\":\"mdi:radar\",\"stat_t\":\"~/status\","
+          "\"val_tpl\":\"{% if value_json.radar is defined %}{{ value_json.radar.status }}{% endif %}\"" },
+        { "sensor", "rssi",
+          "\"name\":\"Wi-Fi\",\"ent_cat\":\"diagnostic\",\"dev_cla\":\"signal_strength\","
+          "\"unit_of_meas\":\"dBm\",\"stat_t\":\"~/status\","
+          "\"val_tpl\":\"{% if value_json.rssi is defined %}{{ value_json.rssi }}{% endif %}\"" },
+    };
+    static char payload[1024];
+    char topic[160];
+    for (const Entity &e : kEntities) {
+        snprintf(topic, sizeof(topic), "%s/%s/%s/%s/config", CONFIG_PRESENCE_HA_DISCOVERY_PREFIX, e.component,
+                 g.device_id, e.object);
+        const int n = snprintf(
+            payload, sizeof(payload),
+            "{\"~\":\"%s\",%s,\"uniq_id\":\"%s_%s\",\"avty_t\":\"~/status\","
+            "\"avty_tpl\":\"{{ 'online' if value_json.online else 'offline' }}\","
+            "\"dev\":{\"ids\":[\"%s\"],\"name\":\"Cảm biến hiện diện %s\",\"mf\":\"presence-s3-ai\","
+            "\"mdl\":\"ESP32-S3 + LD2410\",\"sw\":\"%s\"}}",
+            s_prefix, e.body, g.device_id, e.object, g.device_id, g.device_id, g.fw_version);
+        if (n <= 0 || n >= (int)sizeof(payload) || esp_mqtt_client_publish(s_mqtt, topic, payload, n, 1, 1) < 0) {
+            return false;
+        }
+    }
+    ESP_LOGI(TAG, "Home Assistant discovery published (%s/...)", CONFIG_PRESENCE_HA_DISCOVERY_PREFIX);
+    return true;
+}
+#endif
 
 static void reset_inflight()
 {
@@ -178,6 +227,7 @@ static void mqtt_event(void *, esp_event_base_t, int32_t id, void *data)
             esp_mqtt_client_subscribe(s_mqtt, topic, 1);
         }
         s_status_requested = true;
+        s_ha_discovery_pending = true;
         ESP_LOGI(TAG, "MQTT connected");
         break;
     }
@@ -274,6 +324,7 @@ static void start_link()
     // QEMU only: OpenCores Ethernet MAC (-nic user,model=open_eth)
     esp_netif_config_t ncfg = ESP_NETIF_DEFAULT_ETH();
     esp_netif_t *netif = esp_netif_new(&ncfg);
+    esp_netif_set_hostname(netif, g.device_id);
     eth_mac_config_t mac_cfg = ETH_MAC_DEFAULT_CONFIG();
     eth_phy_config_t phy_cfg = ETH_PHY_DEFAULT_CONFIG();
     phy_cfg.autonego_timeout_ms = 100;
@@ -295,7 +346,8 @@ static void start_link()
                                             .dispatch_method = ESP_TIMER_TASK, .name = "wifi_retry",
                                             .skip_unhandled_events = true };
     ESP_ERROR_CHECK(esp_timer_create(&targs, &s_wifi_retry));
-    esp_netif_create_default_wifi_sta();
+    // Hostname = device id: the router's client list shows where the configuration page is (http://<ip>/)
+    esp_netif_set_hostname(esp_netif_create_default_wifi_sta(), g.device_id);
     wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&init));
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, on_wifi, nullptr));
@@ -380,6 +432,11 @@ static void net_task(void *)
             }
         }
         if (s_mqtt_connected) {
+#if CONFIG_PRESENCE_HA_DISCOVERY
+            if (s_ha_discovery_pending && publish_ha_discovery()) {
+                s_ha_discovery_pending = false;
+            }
+#endif
             if (s_status_requested || now - last_status > 15000) {
                 s_status_requested = false;
                 last_status = now;
@@ -411,6 +468,7 @@ void net_start()
     snprintf(s_prefix, sizeof(s_prefix), "%s/dev/%s", net_settings().topic_prefix, g.device_id);
     s_acks = xQueueCreate(16, sizeof(int));
     start_link();
+    web_config_start();
     // Core 0 with the network stack; radar and decisions stay on core 1
     xTaskCreatePinnedToCore(net_task, "net", 8192, nullptr, 4, nullptr, 0); // MQTT over TLS encrypts here
 }

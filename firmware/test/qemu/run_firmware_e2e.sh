@@ -6,6 +6,7 @@
 # backend on :8000 of the host. Extra sdkconfig lines (credentials) in $QEMU_SDKCONFIG_EXTRA (file path).
 # QEMU_CONSOLE_PORT=5555 puts the console/log UART0 on a TCP socket instead of stdio (to type console commands such
 # as `mem`); QEMU then waits for that connection before starting.
+# QEMU_WEB_PORT=8080 forwards that host port to the device's configuration web page (port 80).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 DEFAULTS="sdkconfig.defaults;sdkconfig.qemu"
@@ -20,6 +21,8 @@ sys.path.insert(0, os.path.join(os.environ["IDF_PATH"], "tools"))
 from idf_py_actions.qemu_ext import QEMU_TARGETS
 open("qemu_efuse.bin", "wb").write(QEMU_TARGETS["esp32s3"].default_efuse)
 PY
+NIC="user,model=open_eth"
+if [ -n "${QEMU_WEB_PORT:-}" ]; then NIC="${NIC},hostfwd=tcp::${QEMU_WEB_PORT}-:80"; fi
 UART0="mon:stdio"
 if [ -n "${QEMU_CONSOLE_PORT:-}" ]; then UART0="tcp::${QEMU_CONSOLE_PORT},server"; fi
 exec qemu-system-xtensa -M esp32s3 -m 32M -nographic \
@@ -27,5 +30,5 @@ exec qemu-system-xtensa -M esp32s3 -m 32M -nographic \
     -drive file=qemu_efuse.bin,if=none,format=raw,id=efuse \
     -global driver=nvram.esp32s3.efuse,property=drive,value=efuse \
     -global driver=timer.esp32s3.timg,property=wdt_disable,value=true \
-    -nic user,model=open_eth \
+    -nic "${NIC}" \
     -serial "${UART0}" -serial tcp::5556,server,nowait

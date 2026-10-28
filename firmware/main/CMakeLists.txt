@@ -19,9 +19,10 @@ endif()
 
 idf_component_register(
     SRCS app_main.cpp console.cpp decision.cpp model_update.cpp net.cpp radar.cpp settings.cpp status.cpp
+        web_config.cpp
     INCLUDE_DIRS .
     PRIV_REQUIRES presence nvs_flash esp_driver_uart esp_driver_gpio esp_timer esp_wifi esp_netif esp_eth
-        esp_http_client mqtt json console esp_app_format mbedtls
+        esp_http_client esp_http_server mqtt json console esp_app_format mbedtls
     EMBED_TXTFILES ${embed})
 
 if(have_private_ca)

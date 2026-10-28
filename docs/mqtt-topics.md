@@ -14,6 +14,8 @@ Tiền tố mặc định `presence/v1`: trên thiết bị là `CONFIG_PRESENCE
 
 Backend đăng ký `presence/v1/dev/+/samples|status|state|event`.
 
+Ngoài ra, mỗi lần kết nối, thiết bị gửi bản tin **Home Assistant Discovery** (retained) tới `homeassistant/<loại>/<mã thiết bị>/<đối tượng>/config` ([home-assistant.md](home-assistant.md)).
+
 ## Kết nối của thiết bị
 
 - `client_id` = mã thiết bị, keepalive 30 s, tự kết nối lại sau 5 s.
@@ -147,6 +149,6 @@ Quy trình xử lý: [model-update.md](model-update.md).
 
 [`deployment/mosquitto/config/acl`](../deployment/mosquitto/config/acl):
 - Backend (`presence-backend`) có toàn quyền trên `presence/v1/#`.
-- Mỗi thiết bị (tên đăng nhập = mã thiết bị) chỉ **ghi** được `samples`, `status`, `state`, `event` của chính nó, và chỉ **đọc** được `desired/#` và `cmd` của chính nó.
+- Mỗi thiết bị (tên đăng nhập = mã thiết bị) chỉ **ghi** được `samples`, `status`, `state`, `event` và bản tin Discovery `homeassistant/+/<mã>/#` của chính nó, và chỉ **đọc** được `desired/#` và `cmd` của chính nó.
 
 Vì vậy, một thiết bị bị lộ mật khẩu không đọc hay ghi được thiết bị khác, và không tự đặt được `desired/model` hay `cmd`. Kiểm tra bằng broker thật: `sh deployment/scripts/test-mosquitto-acl.sh` (cần Docker; có trong CI).

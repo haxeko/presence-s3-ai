@@ -57,6 +57,7 @@ Có phần cứng: [docs/wiring.md](docs/wiring.md) (đấu nối), [docs/window
 | [docs/model-update.md](docs/model-update.md) | Gói mô hình, A/B, phát hành, khôi phục, khóa ký |
 | [docs/data-format.md](docs/data-format.md) | Hợp đồng 72 đặc trưng, định dạng mẫu, CSV, dataset.json |
 | [docs/mqtt-topics.md](docs/mqtt-topics.md) | Chủ đề MQTT và nội dung |
+| [docs/home-assistant.md](docs/home-assistant.md) | Kết nối Home Assistant (MQTT Discovery), trang cấu hình trên thiết bị |
 | [docs/api.md](docs/api.md) | API HTTP của backend |
 | [docs/ld2410.md](docs/ld2410.md) | Giao thức LD2410, biến thể hỗ trợ |
 | [docs/security.md](docs/security.md) | Token, TLS, khóa ký, khi đưa ra Internet |

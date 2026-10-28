@@ -59,6 +59,7 @@ Trước khi commit, kiểm tra: `git status --ignored` và `git add -n .`. Khô
 - **Tải gói**: `Authorization: Bearer <token thiết bị>` (một trong `DEVICE_TOKENS`). Token không gắn với một thiết bị cụ thể: mọi token hợp lệ tải được mọi mô hình đã duyệt. Gói mô hình không chứa dữ liệu thô.
 - **MQTT**: mỗi thiết bị có người dùng riêng (tên = mã thiết bị). ACL ([mqtt-topics.md](mqtt-topics.md#quyền-trên-broker-acl)) giới hạn thiết bị trong chủ đề của chính nó. Đã kiểm tra bằng broker thật: `sh deployment/scripts/test-mosquitto-acl.sh`.
 - Không cần token: `/api/health`, `/docs`, `/openapi.json` (chỉ mô tả API, không có dữ liệu). Muốn ẩn thì chặn ở reverse proxy.
+- **Trang cấu hình trên thiết bị** (`http://<IP thiết bị>/`) **không có mật khẩu**. Ai trong cùng mạng cũng đổi được Wi-Fi/MQTT/backend của thiết bị, nhưng không cài được mô hình chưa ký. Ở mạng không tin cậy, tắt trang bằng `CONFIG_PRESENCE_WEB_CONFIG=n`.
 - Chưa có giới hạn số lần thử (rate limit). Khi mở ra Internet, đặt backend sau reverse proxy có giới hạn, và dùng token dài ngẫu nhiên:
 
   ```powershell
