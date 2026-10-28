@@ -16,6 +16,13 @@
 #include "sdkconfig.h"
 #include "settings.h"
 
+// GPIO43/44 are UART0 (boot log, console) and the USB-UART bridge of the DevKitC-1: the radar may use them only when
+// the console is on the native USB port (CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG). See docs/wiring.md.
+#if (CONFIG_PRESENCE_RADAR_RX_GPIO == 43 || CONFIG_PRESENCE_RADAR_RX_GPIO == 44 || CONFIG_PRESENCE_RADAR_TX_GPIO == 43 || \
+     CONFIG_PRESENCE_RADAR_TX_GPIO == 44) && !CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
+#error "Radar on GPIO43/44 needs CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y (console on the USB port)"
+#endif
+
 namespace app {
 
 static const char *TAG = "radar";

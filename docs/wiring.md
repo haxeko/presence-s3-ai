@@ -16,6 +16,11 @@
   - PSRAM octal 33–37 (trên bản N8R8/N16R8);
   - UART0 43/44 (console);
   - LED RGB (GPIO48 trên DevKitC-1 v1.0, GPIO38 trên v1.1).
+- **Dùng chân in chữ TX/RX (GPIO43/44) cho radar:** được, nhưng đó là UART0 và cũng nối với chip USB-UART của cổng "UART". Phải build với:
+  - `CONFIG_PRESENCE_RADAR_TX_GPIO=43`, `CONFIG_PRESENCE_RADAR_RX_GPIO=44`;
+  - `CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y`: console và log chuyển sang cổng "USB". Thiếu dòng này thì build dừng với thông báo lỗi.
+
+  Sau đó nạp, cấp nguồn và xem log qua cổng **USB**. Nếu phải nạp qua cổng "UART", tháo dây TX của radar trong lúc nạp. Cắm cổng "UART" khi radar đang chạy có thể làm nhiễu radar, vì hai bên cùng nối vào GPIO44.
 - Đổi chân bằng `idf.py menuconfig` → *Presence S3 AI → LD2410 radar*, hoặc lúc chạy bằng console (`config set rx_gpio 16`, `config set tx_gpio 15`, `reboot`).
 - Cổng **UART** của DevKitC-1 (qua chip USB-UART) là cổng nạp, log và console cấu hình (115200 baud). Cổng **USB** (native) không dùng.
 - Chân ra hiện diện (tùy chọn): `PRESENCE_OUTPUT_GPIO` trong menuconfig, mức cao khi quyết định là "có người" (ví dụ nối LED hoặc relay qua transistor). Chân này giữ nguyên lúc khởi động cho tới quyết định đầu tiên.
